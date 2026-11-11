@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard de operación</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<style>
+:root{
+  --prim:#1565C0; --sec:#65BDEB; --bud:#0B3D91; --ppa:#2EAD5B; --proy:#F05A28;
+  --fondo:#F5F7FA; --tarjeta:#FFFFFF; --txt:#172B4D; --txt2:#5E6C84; --borde:#DFE1E6;
+  --fuente:'Gadugi','Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--fondo);color:var(--txt);font-family:var(--fuente);font-size:15px;line-height:1.45}
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+aside{background:#fff;border-right:1px solid var(--borde);padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto}
+main{padding:24px 32px 56px;max-width:1600px;width:100%}
+h1{font-size:2.1rem;letter-spacing:-.02em;margin:0 0 4px;font-weight:700}
+h2{font-size:1.5rem;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--borde);font-weight:700}
+h3{font-size:1.15rem;margin:26px 0 10px;font-weight:600}
+aside h2{font-size:1.1rem;border:0;margin:0 0 4px;padding:0}
+aside h3{font-size:.95rem;margin:18px 0 8px}
+.cap{color:var(--txt2);font-size:.88rem}
+label{display:block;font-size:.85rem;font-weight:600;color:var(--txt2);margin:10px 0 4px}
+select,input[type=date]{width:100%;padding:8px 10px;border:1px solid #B3BAC5;border-radius:8px;background:#fff;font:inherit;color:var(--txt)}
+button{font:inherit;cursor:pointer;border:1px solid var(--borde);background:#fff;color:var(--txt);border-radius:8px;padding:8px 12px;font-weight:600}
+button:hover{border-color:var(--prim);color:var(--prim)}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--prim);outline-offset:2px}
+button.p{background:var(--prim);border-color:var(--prim);color:#fff;width:100%;margin-top:10px}
+button.p:hover{background:var(--bud);color:#fff}
+button:disabled{opacity:.6;cursor:wait}
+hr{border:0;border-top:1px solid var(--borde);margin:18px 0}
+.top{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.estado{border-radius:10px;padding:10px 14px;font-size:.85rem;font-weight:600;border:1px solid}
+.estado.ok{background:#EAF2FD;color:var(--bud);border-color:#B7D4F4}
+.estado.err{background:#FFEBE6;color:#BF2600;border-color:#FFBDAD}
+.acciones{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.acciones a{font-size:.88rem;color:var(--prim);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:12px 0 16px}
+.kpi{background:var(--tarjeta);border:1px solid var(--borde);border-radius:12px;padding:15px 17px;box-shadow:0 2px 7px rgba(23,43,77,.06);min-height:104px}
+.kpi .l{color:var(--txt2);font-size:.86rem;font-weight:600}
+.kpi .v{font-size:1.5rem;font-weight:700;margin-top:4px}
+.kpi .d{font-size:.84rem;font-weight:600;margin-top:2px}
+.pos{color:#1B7F3B}.neg{color:#BF2600}
+.graf{background:var(--tarjeta);border:1px solid var(--borde);border-radius:12px;padding:12px;box-shadow:0 2px 7px rgba(23,43,77,.05)}
+.graf .caja{position:relative;height:var(--h,360px)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fila{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
+.fila .sel{min-width:220px;flex:1 1 220px;max-width:360px}
+.fila button{padding:9px 14px}
+details{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:10px 14px;margin:14px 0}
+summary{cursor:pointer;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin-top:10px}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--borde)}
+th{color:var(--txt2)}
+.scroll{max-height:360px;overflow:auto}
+.msg{font-size:.84rem;margin-top:8px;color:var(--txt2)}
+.msg.err{color:#BF2600}
+footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--borde)}
+@media (max-width:980px){
+  .layout{grid-template-columns:1fr}
+  aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--borde)}
+  main{padding:18px 14px 40px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+}
+@media (max-width:520px){.kpis{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <h2>Descargas</h2>
+    <div class="cap">Se generan en tu navegador con los datos ya cargados. No consultan la API.</div>
+
+    <h3>Consolidado mensual</h3>
+    <label for="sel-mes-desc">Mes</label>
+    <select id="sel-mes-desc"></select>
+    <button class="p" id="b-mensual">Descargar consolidado mensual</button>
+
+    <hr>
+    <h3>Consolidado anual</h3>
+    <button class="p" id="b-anual" style="margin-top:0">Descargar consolidado anual</button>
+
+    <hr>
+    <h3>PRMTE horario</h3>
+    <label for="f-ini">Fecha inicial</label>
+    <input type="date" id="f-ini">
+    <label for="f-fin">Fecha final</label>
+    <input type="date" id="f-fin">
+    <button class="p" id="b-prmte">Descargar PRMTE horario</button>
+    <div class="msg" id="msg-prmte" role="status"></div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h1>Dashboard de operación</h1>
+        <div class="cap" id="subtitulo">Cargando…</div>
+      </div>
+      <div class="estado ok" id="estado" role="status">Cargando datos…</div>
+    </div>
+    <div class="acciones">
+      <button id="b-recargar">Recargar datos</button>
+      <a id="l-actualizar" href="#" target="_blank" rel="noopener" hidden>Actualizar desde la API (GitHub)</a>
+    </div>
+    <details id="det-adv" hidden><summary id="sum-adv"></summary><ul id="lista-adv"></ul></details>
+
+    <div id="contenido" hidden>
+      <h2>Monitoreo diario de proyectos</h2>
+      <div class="cap" id="cap-carrusel"></div>
+      <div class="fila" style="margin-top:10px">
+        <button id="c-prev">◀ Anterior</button>
+        <button id="c-pausa">⏸ Pausar</button>
+        <button id="c-sig">Siguiente ▶</button>
+        <div class="sel"><label for="c-sel">Ir al proyecto</label><select id="c-sel"></select></div>
+      </div>
+      <div class="graf"><div class="caja" style="--h:480px"><canvas id="g-carrusel"></canvas></div></div>
+      <div class="cap" id="cap-carrusel2" style="margin-top:6px"></div>
+
+      <h2>BESS María Elena</h2>
+      <div class="fila"><div class="sel"><label for="sel-mes-bess">Mes para indicadores BESS</label><select id="sel-mes-bess"></select></div></div>
+      <div class="kpis" id="kpis-bess"></div>
+      <div class="cap" id="cap-bess"></div>
+
+      <h3>Distribución diaria de energía</h3>
+      <div id="bloque-diario-bess">
+        <div class="fila"><div class="sel"><label for="sel-dia-bess">Mes para gráfico diario</label><select id="sel-dia-bess"></select></div></div>
+        <div class="graf"><div class="caja" style="--h:520px"><canvas id="g-bess-diario"></canvas></div></div>
+      </div>
+      <div class="cap" id="msg-diario-bess" hidden>No hay información diaria desde la API. Los meses del Excel contienen información mensual.</div>
+
+      <div class="graf" style="margin-top:14px"><div class="caja" style="--h:560px"><canvas id="g-bess-anual"></canvas></div></div>
+      <details><summary>Ver acumulados del BESS</summary><div class="kpis" id="kpis-bess-acum"></div></details>
+
+      <h2>Portafolio de generación</h2>
+      <div class="kpis" id="kpis-total"></div>
+      <div class="graf"><div class="caja" style="--h:500px"><canvas id="g-total"></canvas></div></div>
+
+      <h3>Detalle mensual por proyecto</h3>
+      <div class="grid2" id="grid-proyectos"></div>
+
+      <details><summary>Fuentes utilizadas por proyecto</summary>
+        <div class="scroll"><table><thead><tr><th>Proyecto</th><th>Mes</th><th>Fuente</th></tr></thead><tbody id="tabla-fuentes"></tbody></table></div>
+      </details>
+    </div>
+
+    <footer class="cap" id="pie"></footer>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+// ============================================================
+// CONFIGURACION
+// ============================================================
+// Opcional: pega aquí la URL de la pestaña Actions de tu repo para mostrar el enlace
+// "Actualizar desde la API". Ej: "https://github.com/TU_USUARIO/TU_REPO/actions/workflows/actualizar.yml"
+const URL_ACTIONS = "";
+const SEGUNDOS_ROTACION = 10;
+
+const COL = {prim:'#1565C0', sec:'#65BDEB', bud:'#0B3D91', ppa:'#2EAD5B', proy:'#F05A28',
+             txt:'#172B4D', txt2:'#5E6C84', borde:'#DFE1E6', grid:'rgba(94,108,132,.18)'};
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MESES_C = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+Chart.defaults.font.family = "Gadugi,'Segoe UI',Arial,sans-serif";
+Chart.defaults.color = COL.txt2;
+
+const $ = s => document.querySelector(s);
+const fmt = (v, d = 1) => (v == null || isNaN(v)) ? '–' : Number(v).toLocaleString('es-CL', {minimumFractionDigits: d, maximumFractionDigits: d});
+const signo = (v, d = 1) => (v >= 0 ? '+' : '−') + fmt(Math.abs(v), d);
+
+let D = null;
+const charts = {};
+const carr = {lista: [], i: 0, pausa: false, t: null};
+
+// ============================================================
+// CARGA
+// ============================================================
+async function cargar() {
+  const est = $('#estado');
+  try {
+    const r = await fetch('data/datos.json?v=' + Date.now(), {cache: 'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    D = await r.json();
+  } catch (e) {
+    est.className = 'estado err';
+    est.textContent = 'No se pudieron cargar los datos (' + e.message + '). Ejecuta el workflow “Actualizar datos” en GitHub Actions.';
+    $('#subtitulo').textContent = 'Sin datos';
+    return;
+  }
+  render();
+}
+
+function llenar(sel, opciones, textoFn) {
+  const previo = sel.value;
+  sel.innerHTML = '';
+  opciones.forEach(o => { const op = document.createElement('option'); op.value = o.v; op.textContent = o.t; sel.appendChild(op); });
+  if ([...sel.options].some(o => o.value === previo)) sel.value = previo;
+}
+
+function render() {
+  const M = D.meta;
+  $('#subtitulo').textContent = `BESS María Elena y portafolio de generación · Período ${M.fecha_inicio} a ${M.fecha_fin}`;
+  $('#estado').className = 'estado ok';
+  $('#estado').textContent = 'Datos actualizados: ' + M.generado;
+  $('#pie').textContent = 'Datos consultados a las API del Coordinador una vez al día. Última actualización: ' + M.generado + '.';
+  $('#contenido').hidden = false;
+
+  const adv = D.advertencias || [];
+  $('#det-adv').hidden = adv.length === 0;
+  $('#sum-adv').textContent = `Estado de datos: ${adv.length} advertencias`;
+  $('#lista-adv').innerHTML = adv.map(a => `<li>${a}</li>`).join('');
+
+  if (URL_ACTIONS) { const l = $('#l-actualizar'); l.href = URL_ACTIONS; l.hidden = false; }
+
+  // Descargas
+  const periodos = new Set();
+  D.proyectos_mensual.forEach(r => periodos.add(r.Anio * 100 + r.Mes));
+  D.bess_mensual.forEach(r => periodos.add(r.Anio * 100 + r.Mes));
+  llenar($('#sel-mes-desc'), [...periodos].sort((a, b) => b - a).map(p => ({v: p, t: `${MESES[p % 100 - 1]} ${Math.floor(p / 100)}`})));
+  const fi = $('#f-ini'), ff = $('#f-fin');
+  fi.min = ff.min = `${M.anio}-01-01`; fi.max = ff.max = M.fecha_datos;
+  if (!fi.value) { fi.value = M.fecha_datos.slice(0, 8) + '01'; ff.value = M.fecha_datos; }
+
+  renderCarrusel(); renderBess(); renderPortafolio();
+}
+
+// ============================================================
+// GRAFICOS
+// ============================================================
+function dibujar(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), cfg);
+}
+
+function opciones(o = {}) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: {mode: 'index', intersect: false},
+    plugins: {
+      legend: {display: o.legend !== false, position: 'bottom', labels: {usePointStyle: true, boxWidth: 8, padding: 16}},
+      title: {display: !!o.title, text: o.title, align: 'start', color: COL.txt, font: {size: 16, weight: '600'}, padding: {bottom: 12}},
+      tooltip: {callbacks: {label: c => ` ${c.dataset.label}: ${fmt(c.parsed.y, o.dec ?? 1)}${o.unit || ''}`}}
+    },
+    scales: {
+      x: {stacked: !!o.stacked, grid: {display: false}, title: {display: !!o.xtitle, text: o.xtitle}},
+      y: {stacked: !!o.stacked, beginAtZero: true, suggestedMax: o.suggestedMax, grid: {color: COL.grid},
+          title: {display: !!o.ytitle, text: o.ytitle}}
+    }
+  };
+}
+
+function diasEntre(a, b) {
+  const out = [];
+  for (let t = Date.parse(a + 'T00:00:00Z'), f = Date.parse(b + 'T00:00:00Z'); t <= f; t += 864e5) out.push(new Date(t).toISOString().slice(0, 10));
+  return out;
+}
+
+// ---------------- Carrusel ----------------
+function renderCarrusel() {
+  const M = D.meta;
+  const con = new Set(D.carrusel.map(r => r.Proyecto));
+  carr.lista = M.orden_carrusel.filter(p => con.has(p));
+  carr.i = Math.min(carr.i, Math.max(carr.lista.length - 1, 0));
+  llenar($('#c-sel'), carr.lista.map(p => ({v: p, t: p})));
+  const f = s => s.split('-').reverse().join('-');
+  $('#cap-carrusel').textContent = `Rotación automática cada ${SEGUNDOS_ROTACION} segundos. Cada proyecto muestra los últimos ${M.dias_carrusel} días, desde ${f(M.carrusel_inicio)} hasta ${f(M.carrusel_fin)}.`;
+  pintarCarrusel(); reiniciarTimer();
+}
+
+function pintarCarrusel() {
+  if (!carr.lista.length) { $('#cap-carrusel2').textContent = 'No hay datos diarios disponibles para el carrusel.'; return; }
+  const M = D.meta, p = carr.lista[carr.i];
+  $('#c-sel').value = p;
+  const mapa = new Map(D.carrusel.filter(r => r.Proyecto === p).map(r => [r.Fecha_Dia, r.Energia_MWh]));
+  const dias = diasEntre(M.carrusel_inicio, M.carrusel_fin);
+  const f = s => s.split('-').reverse().join('-');
+  dibujar('g-carrusel', {
+    type: 'bar',
+    data: {labels: dias.map(d => d.slice(8, 10) + '-' + d.slice(5, 7)),
+           datasets: [{label: 'Energía diaria', data: dias.map(d => mapa.has(d) ? mapa.get(d) : null), backgroundColor: COL.prim, borderRadius: 3}]},
+    options: opciones({title: `Energía diaria · ${p} · ${f(M.carrusel_inicio)} a ${f(M.carrusel_fin)}`, legend: false, ytitle: 'Energía [MWh]', xtitle: 'Fecha', dec: 2, unit: ' MWh'})
+  });
+  $('#cap-carrusel2').textContent = `Vista ${carr.i + 1} de ${carr.lista.length} · ${carr.pausa ? 'Pausado' : 'Rotación automática cada ' + SEGUNDOS_ROTACION + ' segundos'} · Fuente: API`;
+  $('#c-pausa').textContent = carr.pausa ? '▶ Reanudar' : '⏸ Pausar';
+}
+
+function reiniciarTimer() {
+  clearInterval(carr.t);
+  carr.t = setInterval(() => {
+    if (carr.pausa || !carr.lista.length || document.hidden) return;
+    carr.i = (carr.i + 1) % carr.lista.length; pintarCarrusel();
+  }, SEGUNDOS_ROTACION * 1000);
+}
+
+// ---------------- BESS ----------------
+function kpi(l, v, d, clase) {
+  return `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div>${d ? `<div class="d ${clase || ''}">${d}</div>` : ''}</div>`;
+}
+
+function renderBess() {
+  const M = D.meta, A = M.anio;
+  const bessA = D.bess_mensual.filter(r => r.Anio === A);
+  if (!bessA.length) {
+    $('#kpis-bess').innerHTML = '<div class="cap">No hay información disponible del BESS.</div>';
+  } else {
+    llenar($('#sel-mes-bess'), bessA.map(r => r.Mes).sort((a, b) => b - a).map(m => ({v: m, t: MESES[m - 1]})));
+    pintarKpisBess();
+  }
+
+  // Diario
+  const meses = [...new Set(D.bess_diario.map(r => r.Anio * 100 + r.Mes))].sort((a, b) => b - a);
+  $('#bloque-diario-bess').hidden = !meses.length;
+  $('#msg-diario-bess').hidden = !!meses.length;
+  if (meses.length) { llenar($('#sel-dia-bess'), meses.map(p => ({v: p, t: `${MESES[p % 100 - 1]} ${Math.floor(p / 100)}`}))); pintarBessDiario(); }
+
+  // Consolidado anual
+  const ppa = Array(12).fill(0), spot = Array(12).fill(0), bg = Array(12).fill(null), bp = Array(12).fill(null);
+  bessA.forEach(r => { ppa[r.Mes - 1] = r.Energia_PPA_MWh; spot[r.Mes - 1] = r.Energia_Spot_MWh; });
+  D.budgets_bess.filter(r => r.Anio === A).forEach(r => { bg[r.Mes - 1] = r.Budget_Generacion_MWh; bp[r.Mes - 1] = r.Budget_PPA_MWh; });
+  dibujar('g-bess-anual', {
+    type: 'bar',
+    data: {labels: MESES_C, datasets: [
+      {type: 'bar', label: 'PPA real', data: ppa, backgroundColor: COL.prim, stack: 'real', borderRadius: 2},
+      {type: 'bar', label: 'Spot real', data: spot, backgroundColor: COL.sec, stack: 'real', borderRadius: 2},
+      {type: 'line', label: 'Budget generación', data: bg, borderColor: COL.bud, backgroundColor: COL.bud, borderWidth: 3, pointRadius: 4, stack: 'l1', tension: 0},
+      {type: 'line', label: 'Budget PPA', data: bp, borderColor: COL.ppa, backgroundColor: COL.ppa, borderWidth: 3, pointRadius: 4, stack: 'l2', tension: 0}]},
+    options: opciones({title: 'Consolidado anual BESS', stacked: true, xtitle: 'Mes', ytitle: 'Energía [MWh]', unit: ' MWh'})
+  });
+
+  const suma = c => bessA.reduce((s, r) => s + (r[c] || 0), 0);
+  $('#kpis-bess-acum').innerHTML = kpi('Inyección acumulada', fmt(suma('Energia_Total_MWh')) + ' MWh') + kpi('PPA acumulado', fmt(suma('Energia_PPA_MWh')) + ' MWh') +
+    kpi('Spot acumulado', fmt(suma('Energia_Spot_MWh')) + ' MWh') + kpi('Ingreso acumulado', 'USD ' + fmt(suma('Ingreso_Total_USD'), 0));
+}
+
+function pintarKpisBess() {
+  const A = D.meta.anio, m = Number($('#sel-mes-bess').value);
+  const f = D.bess_mensual.find(r => r.Anio === A && r.Mes === m);
+  if (!f) return;
+  const b = D.budgets_bess.find(r => r.Anio === A && r.Mes === m);
+  const dif = b ? f.Energia_Total_MWh - b.Budget_Generacion_MWh : 0;
+  $('#kpis-bess').innerHTML =
+    kpi('Inyección total del mes', fmt(f.Energia_Total_MWh) + ' MWh', `${signo(dif)} MWh vs budget`, dif >= 0 ? 'pos' : 'neg') +
+    kpi('Energía PPA del mes', fmt(f.Energia_PPA_MWh) + ' MWh') +
+    kpi('Energía Spot del mes', fmt(f.Energia_Spot_MWh) + ' MWh') +
+    kpi('Ingreso del mes', 'USD ' + fmt(f.Ingreso_Total_USD, 0));
+  $('#cap-bess').textContent = `Fuente: ${f.Fuente} · Precio PPA: USD ${fmt(D.meta.precio_ppa, 2)}/MWh`;
+}
+
+function pintarBessDiario() {
+  const p = Number($('#sel-dia-bess').value), a = Math.floor(p / 100), m = p % 100;
+  const M = D.meta;
+  const pref = `${a}-${String(m).padStart(2, '0')}`;
+  let fin = `${pref}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`;
+  if (M.fecha_datos.startsWith(pref) && M.fecha_datos < fin) fin = M.fecha_datos;
+  const mapa = new Map(D.bess_diario.filter(r => r.Anio === a && r.Mes === m).map(r => [r.Fecha_Dia, r]));
+  const dias = diasEntre(pref + '-01', fin);
+  dibujar('g-bess-diario', {
+    type: 'bar',
+    data: {labels: dias.map(d => d.slice(8)), datasets: [
+      {label: 'PPA real', data: dias.map(d => mapa.get(d)?.Energia_PPA_MWh ?? 0), backgroundColor: COL.prim, stack: 'e'},
+      {label: 'Spot real', data: dias.map(d => mapa.get(d)?.Energia_Spot_MWh ?? 0), backgroundColor: COL.sec, stack: 'e'}]},
+    options: opciones({title: `Inyección diaria BESS · ${MESES[m - 1]} ${a}`, stacked: true, xtitle: 'Día del mes', ytitle: 'Energía [MWh]', suggestedMax: 120, unit: ' MWh'})
+  });
+}
+
+// ---------------- Portafolio ----------------
+function sumPorMes(filas, campo, filtro = () => true) {
+  const a = Array(12).fill(null);
+  filas.filter(filtro).forEach(r => { a[r.Mes - 1] = (a[r.Mes - 1] || 0) + r[campo]; });
+  return a;
+}
+
+function renderPortafolio() {
+  const M = D.meta, A = M.anio, mesAct = M.mes_actual;
+  const pm = D.proyectos_mensual.filter(r => r.Anio === A), bp = D.budgets_proyectos.filter(r => r.Anio === A);
+  const gen = sumPorMes(pm, 'Generacion_MWh').map(v => v || 0);
+  const bud = sumPorMes(bp, 'Budget_Generacion_MWh');
+
+  let ult = 0; gen.forEach((v, i) => { if (v > 0) ult = i + 1; });
+  if (ult) {
+    const ga = gen.slice(0, ult).reduce((s, v) => s + v, 0), ba = bud.slice(0, ult).reduce((s, v) => s + (v || 0), 0), dif = ga - ba;
+    $('#kpis-total').innerHTML = kpi(`Generación total ${MESES[ult - 1]}`, fmt(gen[ult - 1]) + ' MWh') +
+      kpi(`Budget total ${MESES[ult - 1]}`, bud[ult - 1] != null ? fmt(bud[ult - 1]) + ' MWh' : 'Sin budget') +
+      kpi('Generación acumulada', fmt(ga) + ' MWh') +
+      kpi('Diferencia acumulada', signo(dif) + ' MWh', `${signo(dif)} MWh vs budget`, dif >= 0 ? 'pos' : 'neg');
+  } else $('#kpis-total').innerHTML = '';
+
+  dibujar('g-total', {
+    type: 'bar',
+    data: {labels: MESES_C, datasets: [
+      {label: 'Generación real total', data: gen, backgroundColor: COL.prim, borderRadius: 2},
+      {label: 'Budget total', data: bud, backgroundColor: COL.proy, borderRadius: 2}]},
+    options: opciones({title: 'Generación mensual total vs budget', xtitle: 'Mes', ytitle: 'Generación [MWh]', unit: ' MWh'})
+  });
+
+  // Un gráfico por proyecto
+  const cont = $('#grid-proyectos');
+  Object.keys(charts).filter(k => k.startsWith('gp-')).forEach(k => { charts[k].destroy(); delete charts[k]; });
+  cont.innerHTML = '';
+  M.orden_graficos.forEach((el, i) => {
+    const esPMGD = el === 'CONSOLIDADO PMGDS';
+    const filtro = r => esPMGD ? M.proyectos_pmgd.includes(r.Proyecto) : r.Proyecto === el;
+    const g = sumPorMes(pm, 'Generacion_MWh', filtro).slice(0, mesAct).map(v => v || 0);
+    const b = sumPorMes(bp, 'Budget_Generacion_MWh', filtro).slice(0, mesAct);
+    const id = 'gp-' + i;
+    cont.insertAdjacentHTML('beforeend', `<div class="graf"><div class="caja" style="--h:340px"><canvas id="${id}"></canvas></div></div>`);
+    dibujar(id, {
+      type: 'bar',
+      data: {labels: MESES_C.slice(0, mesAct), datasets: [
+        {type: 'bar', label: 'Generación', data: g, backgroundColor: COL.prim, borderRadius: 2},
+        {type: 'line', label: 'Budget', data: b, borderColor: COL.proy, backgroundColor: COL.proy, borderWidth: 2, pointRadius: 3, tension: 0}]},
+      options: opciones({title: esPMGD ? 'Consolidado PMGDs' : el, legend: i === 0, ytitle: 'MWh', unit: ' MWh'})
+    });
+  });
+
+  $('#tabla-fuentes').innerHTML = [...pm].sort((a, b) => a.Proyecto.localeCompare(b.Proyecto) || a.Mes - b.Mes)
+    .map(r => `<tr><td>${r.Proyecto}</td><td>${MESES[r.Mes - 1]}</td><td>${r.Fuente}</td></tr>`).join('');
+}
+
+// ============================================================
+// EXCEL (ExcelJS)
+// ============================================================
+const LADO_FINO = {style: 'thin', color: {argb: 'FFDFE1E6'}};
+const BORDE_FINO = {top: LADO_FINO, left: LADO_FINO, bottom: LADO_FINO, right: LADO_FINO};
+const LADO_PUNT = {style: 'dotted', color: {argb: 'FF000000'}};
+const BORDE_PUNT = {top: LADO_PUNT, left: LADO_PUNT, bottom: LADO_PUNT, right: LADO_PUNT};
+const FUENTE_XLS = 'Calibri';
+
+async function guardarLibro(wb, nombre) {
+  const buf = await wb.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  const a = document.createElement('a'); a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// ---- Consolidado mensual ----
+async function descargarMensual() {
+  const p = Number($('#sel-mes-desc').value); if (!p) return;
+  const anio = Math.floor(p / 100), mes = p % 100, M = D.meta;
+  const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(`Consolidado ${MESES[mes - 1]}`.slice(0, 31));
+  ws.columns = [{header: 'Mes', width: 13}, {header: 'Parque', width: 25}, {header: 'Total Inyección MWh', width: 22}, {header: 'Distribución contrato', width: 23}];
+
+  M.orden_mensual.forEach(pr => {
+    const r = D.proyectos_mensual.find(x => x.Anio === anio && x.Mes === mes && x.Proyecto === pr);
+    ws.addRow([periodo, pr, r ? r.Generacion_MWh : null, null]);
+  });
+  const b = D.bess_mensual.find(x => x.Anio === anio && x.Mes === mes);
+  const filaPPA = M.orden_mensual.length + 2, filaSpot = filaPPA + 1;
+  ws.addRow([periodo, 'BESS MARIA ELENA (PPA)', b ? b.Energia_Total_MWh : null, b ? b.Energia_PPA_MWh : null]);
+  ws.addRow([periodo, 'BESS MARIA ELENA (SPOT)', null, b ? b.Energia_Spot_MWh : null]);
+  ws.mergeCells(filaPPA, 3, filaSpot, 3);
+
+  const h = ws.getRow(1); h.height = 20;
+  h.eachCell(c => {
+    c.font = {name: FUENTE_XLS, size: 11, bold: true}; c.alignment = {horizontal: 'center', vertical: 'middle'};
+    c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFFFFFFF'}}; c.border = {bottom: {style: 'thin', color: {argb: 'FF000000'}}};
+  });
+  for (let f = 2; f <= ws.rowCount; f++) {
+    ws.getRow(f).height = 19;
+    for (let c = 1; c <= 4; c++) {
+      const cel = ws.getCell(f, c);
+      cel.font = {name: FUENTE_XLS, size: 11}; cel.border = BORDE_PUNT;
+      cel.alignment = {horizontal: c <= 2 ? 'left' : 'right', vertical: 'middle'};
+      if (c >= 3) { cel.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFEBF1DE'}}; cel.numFmt = '#,##0.0'; }
+    }
+  }
+  ws.views = [{state: 'frozen', ySplit: 1}];
+  ws.autoFilter = `A1:D${ws.rowCount}`;
+  ws.pageSetup = {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0};
+  await guardarLibro(wb, `${String(mes).padStart(2, '0')}${anio}.xlsx`);
+}
+
+// ---- Consolidado anual ----
+async function descargarAnual() {
+  const M = D.meta, A = M.anio;
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Consolidado Anual');
+  const filas = M.orden_anual.map(nombre => {
+    const v = Array(12).fill(null);
+    if (nombre === 'MARIA ELENA BESS') D.bess_mensual.filter(r => r.Anio === A).forEach(r => { v[r.Mes - 1] = r.Energia_Total_MWh; });
+    else D.proyectos_mensual.filter(r => r.Anio === A && r.Proyecto === nombre).forEach(r => { v[r.Mes - 1] = (v[r.Mes - 1] || 0) + r.Generacion_MWh; });
+    const hay = v.some(x => x != null);
+    return [nombre, ...v, hay ? v.reduce((s, x) => s + (x || 0), 0) : null];
+  });
+
+  ws.mergeCells('A1:N1');
+  const t = ws.getCell('A1'); t.value = `CONSOLIDADO ANUAL ${A} [MWh]`;
+  t.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF0B3D91'}};
+  t.font = {name: FUENTE_XLS, size: 13, bold: true, color: {argb: 'FFFFFFFF'}}; t.alignment = {horizontal: 'left', vertical: 'middle'};
+  ws.getRow(1).height = 25;
+
+  ws.getRow(2).values = ['Parque', ...MESES_C, 'Inyección Anual MWh'];
+  ws.getRow(2).height = 22;
+  const lado = {style: 'thin', color: {argb: 'FFC9D1D9'}}, borde = {top: lado, left: lado, bottom: lado, right: lado};
+  for (let c = 1; c <= 14; c++) {
+    const cel = ws.getCell(2, c);
+    cel.font = {name: FUENTE_XLS, size: 11, bold: true, color: {argb: 'FFFFFFFF'}};
+    cel.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF1565C0'}};
+    cel.alignment = {horizontal: 'center', vertical: 'middle'}; cel.border = borde;
+  }
+  filas.forEach((f, i) => {
+    const r = 3 + i; ws.getRow(r).values = f; ws.getRow(r).height = 20;
+    for (let c = 1; c <= 14; c++) {
+      const cel = ws.getCell(r, c);
+      cel.border = borde; cel.font = {name: FUENTE_XLS, size: 11, bold: c === 14};
+      cel.alignment = {horizontal: c === 1 ? 'left' : 'right', vertical: 'middle'};
+      if (c >= 2) cel.numFmt = '#,##0.0';
+      if (c === 14) cel.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFEBF1DE'}};
+      else if (r % 2 === 0) cel.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFF5F7FA'}};
+    }
+  });
+  const ft = 3 + filas.length;
+  ws.getCell(ft, 1).value = 'TOTAL PORTAFOLIO';
+  for (let c = 2; c <= 14; c++) {
+    const L = ws.getColumn(c).letter;
+    const res = filas.reduce((s, f) => s + (f[c - 1] || 0), 0);
+    ws.getCell(ft, c).value = {formula: `SUM(${L}3:${L}${ft - 1})`, result: res};
+    ws.getCell(ft, c).numFmt = '#,##0.0';
+  }
+  for (let c = 1; c <= 14; c++) {
+    const cel = ws.getCell(ft, c);
+    cel.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFDCE6F1'}};
+    cel.font = {name: FUENTE_XLS, size: 11, bold: true, color: {argb: 'FF172B4D'}};
+    cel.border = borde; cel.alignment = {horizontal: c === 1 ? 'left' : 'right', vertical: 'middle'};
+  }
+  ws.getColumn(1).width = 25; for (let c = 2; c <= 13; c++) ws.getColumn(c).width = 12; ws.getColumn(14).width = 22;
+  ws.views = [{state: 'frozen', xSplit: 1, ySplit: 2, showGridLines: false}];
+  ws.autoFilter = `A2:N${ft}`;
+  ws.pageSetup = {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0};
+  await guardarLibro(wb, `Consolidado Anual ${A}.xlsx`);
+}
+
+// ---- PRMTE horario ----
+function mesesEntre(ini, fin) {
+  const out = []; let [a, m] = ini.slice(0, 7).split('-').map(Number); const [af, mf] = fin.slice(0, 7).split('-').map(Number);
+  while (a < af || (a === af && m <= mf)) { out.push(`${a}${String(m).padStart(2, '0')}`); m++; if (m > 12) { m = 1; a++; } }
+  return out;
+}
+function fechaUTC(s) { const [d, h] = s.split(' '); const [y, mo, da] = d.split('-').map(Number); const [hh, mi] = h.split(':').map(Number); return new Date(Date.UTC(y, mo - 1, da, hh, mi)); }
+const sumaMWh = arr => { let s = 0, hay = false; arr.forEach(v => { if (v != null) { s += v; hay = true; } }); return hay ? s / 1000 : null; };
+
+async function descargarPRMTE() {
+  const msg = $('#msg-prmte'), btn = $('#b-prmte');
+  const ini = $('#f-ini').value, fin = $('#f-fin').value;
+  msg.className = 'msg';
+  if (!ini || !fin) { msg.className = 'msg err'; msg.textContent = 'Selecciona ambas fechas.'; return; }
+  if (fin < ini) { msg.className = 'msg err'; msg.textContent = 'La fecha final debe ser igual o posterior a la inicial.'; return; }
+  btn.disabled = true; msg.textContent = 'Preparando archivo…';
+  try {
+    const periodos = mesesEntre(ini, fin), fechas = [], series = {}, faltan = [];
+    for (const p of periodos) {
+      const r = await fetch(`data/horario_${p}.json?v=${D.meta.generado}`).catch(() => null);
+      if (!r || !r.ok) { faltan.push(p); continue; }
+      const h = await r.json();
+      fechas.push(...h.fechas);
+      for (const [nombre, cols] of Object.entries(h.series)) {
+        series[nombre] ??= {};
+        for (const [col, vals] of Object.entries(cols)) (series[nombre][col] ??= []).push(...vals);
+      }
+    }
+    if (!fechas.length) throw new Error('No hay datos horarios para ese rango.');
+    const idx = []; fechas.forEach((f, i) => { const d = f.slice(0, 10); if (d >= ini && d <= fin) idx.push(i); });
+    if (!idx.length) throw new Error('No hay datos horarios para ese rango.');
+
+    const wb = new ExcelJS.Workbook();
+    const orden = [...D.meta.proyectos, 'BESS MARIA ELENA'];
+    const resumen = [];
+    const hojas = [];
+    orden.forEach(nombre => {
+      if (!series[nombre]) return;
+      const cols = Object.keys(series[nombre]);
+      const datos = {}; cols.forEach(c => { datos[c] = idx.map(i => series[nombre][c][i] ?? null); });
+      hojas.push({nombre, cols, datos});
+      resumen.push([ini, fin, nombre, sumaMWh(datos['Inyección kWh'] || []), datos['Neto PV Red kWh'] ? sumaMWh(datos['Neto PV Red kWh']) : null, datos['Carga BESS kWh'] ? sumaMWh(datos['Carga BESS kWh']) : null]);
+    });
+
+    const estiloEncabezado = ws => {
+      ws.views = [{state: 'frozen', ySplit: 1, showGridLines: false}];
+      ws.getRow(1).height = 22;
+      ws.getRow(1).eachCell(c => {
+        c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF1565C0'}};
+        c.font = {name: FUENTE_XLS, size: 11, bold: true, color: {argb: 'FFFFFFFF'}}; c.alignment = {horizontal: 'center', vertical: 'middle'};
+      });
+      ws.autoFilter = {from: {row: 1, column: 1}, to: {row: 1, column: ws.columnCount}};
+      ws.pageSetup = {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0};
+    };
+
+    const wsR = wb.addWorksheet('Resumen');
+    wsR.columns = [{header: 'Fecha inicio', width: 14}, {header: 'Fecha fin', width: 14}, {header: 'Parque', width: 24},
+                   {header: 'Inyección MWh', width: 18}, {header: 'Neto PV Red MWh', width: 20}, {header: 'Carga MWh', width: 14}];
+    resumen.forEach(r => wsR.addRow(r));
+    estiloEncabezado(wsR);
+    wsR.eachRow((row, n) => { if (n > 1) row.eachCell({includeEmpty: true}, (c, col) => { c.border = BORDE_FINO; c.font = {name: FUENTE_XLS, size: 10}; if (col >= 4) c.numFmt = '#,##0.000'; }); });
+
+    hojas.forEach(({nombre, cols, datos}) => {
+      const ws = wb.addWorksheet(nombre.slice(0, 31));
+      ws.columns = [{header: 'Fecha', width: 18}, ...cols.map(c => ({header: c, width: Math.min(Math.max(c.length + 2, 14), 28)}))];
+      idx.forEach((i, k) => ws.addRow([fechaUTC(fechas[i]), ...cols.map(c => datos[c][k])]));
+      estiloEncabezado(ws);
+      ws.getColumn(1).numFmt = 'yyyy-mm-dd hh:mm';
+      for (let c = 2; c <= cols.length + 1; c++) ws.getColumn(c).numFmt = '#,##0.000';
+      ws.eachRow((row, n) => { if (n > 1) row.eachCell({includeEmpty: true}, c => { c.border = BORDE_FINO; c.font = {name: FUENTE_XLS, size: 10}; }); });
+    });
+
+    await guardarLibro(wb, `PRMTE_${ini.replaceAll('-', '')}_${fin.replaceAll('-', '')}.xlsx`);
+    msg.textContent = `Archivo descargado (${ini.split('-').reverse().join('-')} a ${fin.split('-').reverse().join('-')}).` +
+      (faltan.length ? ` Sin datos horarios para: ${faltan.join(', ')}.` : '');
+  } catch (e) {
+    msg.className = 'msg err'; msg.textContent = e.message;
+  } finally { btn.disabled = false; }
+}
+
+// ============================================================
+// EVENTOS
+// ============================================================
+$('#c-prev').onclick = () => { if (!carr.lista.length) return; carr.i = (carr.i - 1 + carr.lista.length) % carr.lista.length; pintarCarrusel(); reiniciarTimer(); };
+$('#c-sig').onclick = () => { if (!carr.lista.length) return; carr.i = (carr.i + 1) % carr.lista.length; pintarCarrusel(); reiniciarTimer(); };
+$('#c-pausa').onclick = () => { carr.pausa = !carr.pausa; pintarCarrusel(); };
+$('#c-sel').onchange = e => { carr.i = Math.max(carr.lista.indexOf(e.target.value), 0); pintarCarrusel(); reiniciarTimer(); };
+$('#sel-mes-bess').onchange = pintarKpisBess;
+$('#sel-dia-bess').onchange = pintarBessDiario;
+$('#b-mensual').onclick = descargarMensual;
+$('#b-anual').onclick = descargarAnual;
+$('#b-prmte').onclick = descargarPRMTE;
+$('#b-recargar').onclick = async e => { e.target.disabled = true; await cargar(); e.target.disabled = false; };
+
+cargar();
+</script>
+</body>
+</html>
